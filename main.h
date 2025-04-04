@@ -8,6 +8,7 @@
 
 // Title:
 void drawTitle(int selection);
+void drawPartialTitle(int selection, int prevSelection);
 
 // Player:
 struct Player {
@@ -46,7 +47,7 @@ void undrawFoods(struct Food foods[], int numFoods);
 // Instructions/Text:
 void drawInstructions(int difficulty);
 void drawScore(void);
-void handleScore(struct Food *food);
+// void handleScore(struct Food *food);
 
 void resetEverything(void);
 

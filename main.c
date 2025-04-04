@@ -36,6 +36,8 @@ int scoreDrawn = 0;
 
 int howDrawn = 0;
 
+int highScore = 0;
+
 int main(void) {
   /* TODO: */
   // Manipulate REG_DISPCNT here to set Mode 3. //
@@ -83,20 +85,20 @@ int main(void) {
         if (!titleDrawn) {
           waitForVBlank();
           drawFullScreenImageDMA(CoverImage);
+          drawTitle(titleSelection);
           titleDrawn = 1;
         }
-          drawTitle(titleSelection);
         if (KEY_DOWN(BUTTON_DOWN, currentButtons) && !(KEY_DOWN(BUTTON_DOWN, previousButtons))) {
+            drawPartialTitle((titleSelection + 1) % 4, titleSelection);
             titleSelection = (titleSelection + 1) % 4;
-            titleDrawn = 0;
         }
         if (KEY_DOWN(BUTTON_UP, currentButtons) && !(KEY_DOWN(BUTTON_UP, previousButtons))) {
           if (titleSelection == 0) {
+            drawPartialTitle(3, 0);
             titleSelection = 3;
-            titleDrawn = 0;
           } else {
+            drawPartialTitle(titleSelection - 1, titleSelection);
             titleSelection = (titleSelection - 1);
-            titleDrawn = 0;
           }
         }
 
@@ -136,7 +138,16 @@ int main(void) {
         for (int i = 0; i < numFoods; i++) {
           if (checkCollision(player1, &foods[i])) {
               player1->color = foods[i].color;
-              handleScore(&foods[i]);
+              if (foods[i].color == instructionColor) {
+                score++;
+              } else {
+                if (score > highScore) {
+                  highScore = score;
+                }
+                state = WIN;
+              }
+              scoreDrawn = 0;
+              drawScore();
               undrawFoods(foods, numFoods);
               spawnFoods(foods, difficulty, player1);
               drawInstructions(difficulty);
@@ -180,6 +191,11 @@ int main(void) {
       if (!howDrawn) {
         fillScreenDMA(BACKGROUND_COLOR);
         drawHow();
+        howDrawn = 1;
+      }
+      if (KEY_DOWN(BUTTON_SELECT, currentButtons)) {
+        resetEverything();
+        state = START;
       }
 
 
@@ -206,6 +222,51 @@ void drawTitle(int selection) {
   drawCenteredString(110, 115, 10, 10, "Hard", colorChoices[2]);
   waitForVBlank();
   drawCenteredString(130, 115, 10, 10, "How to Play?", colorChoices[3]);
+  waitForVBlank();
+  drawCenteredString(145, 110, 10, 10, "High Score: ", GREEN);
+  char hiScore[20];
+  sprintf(hiScore, "%d", highScore);
+  waitForVBlank();
+  drawCenteredString(145, 150, 10, 10, hiScore, GREEN);
+}
+
+void drawPartialTitle(int selection, int prevSelection) {
+  switch (prevSelection) {
+    case 0:
+      waitForVBlank();
+      drawCenteredString(70, 115, 10, 10, "Easy", WHITE);
+      break;
+    case 1:
+      waitForVBlank();
+      drawCenteredString(90, 115, 10, 10, "Medium", WHITE);
+      break;
+    case 2:
+      waitForVBlank();
+      drawCenteredString(110, 115, 10, 10, "Hard", WHITE);
+      break;
+    case 3:
+      waitForVBlank();
+      drawCenteredString(130, 115, 10, 10, "How to Play?", WHITE);
+      break;
+  }
+  switch (selection) {
+      case 0:
+        waitForVBlank();
+        drawCenteredString(70, 115, 10, 10, "Easy", RED);
+        break;
+      case 1:
+        waitForVBlank();
+        drawCenteredString(90, 115, 10, 10, "Medium", RED);
+        break;
+      case 2:
+        waitForVBlank();
+        drawCenteredString(110, 115, 10, 10, "Hard", RED);
+        break;
+      case 3:
+        waitForVBlank();
+        drawCenteredString(130, 115, 10, 10, "How to Play?", RED);
+        break;
+  }
 }
 
 
@@ -354,15 +415,6 @@ void drawInstructions(int difficulty) {
     }
     instructions = 1;
 }
-void handleScore(struct Food *food) {
-  if (food->color == instructionColor) {
-    score++;
-  } else {
-    score--;
-  }
-  scoreDrawn = 0;
-  drawScore();
-}
 void drawScore(void) {
     waitForVBlank();
     drawRectDMA(5, 680, 30, 10, BACKGROUND_COLOR);
@@ -393,5 +445,14 @@ void resetEverything(void) {
 
 void drawHow(void) {
   waitForVBlank();
-  drawCenteredString(10, 20, 10, 10, "Eat the color that is NOT in the instructions", WHITE);
+  drawString(10, 20, "Eat the color that is NOT", WHITE);
+  drawString(20, 20, "in the clue. If the clue is:", WHITE);
+  drawString(30, 20, "Red", GREEN);
+  drawString(40, 20, "and the possible squares are ", WHITE);
+  drawString(50, 20, "Red, Green and White, eat the", WHITE);
+  drawString(60, 20, "white one because it does not", WHITE);
+  drawString(70, 20, "show up in the word or color", WHITE);
+  drawString(80, 20, "of the clue(s).", WHITE);
+  drawString(90, 20, "Press Backspace to return.", WHITE);
+
 }
