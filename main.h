@@ -52,4 +52,10 @@ void drawScore(void);
 void resetEverything(void);
 
 void drawHow(void);
+void drawLose(void);
+
+void drawNewHighScore(void);
+
+void softReset(void);
+
 #endif
